@@ -79,8 +79,6 @@ while (np.max(phill) > T_accept):
 
 
 
-
-
 fig, ax = plt.subplots(figsize=(25, 7))
 ax.set_xlabel("Length of filament")
 #scatter = ax.scatter(np.arange(N), np.zeros(N), s=100, c=phill_list[0], cmap="viridis", vmin=Te, vmax=Tn, marker="s")
