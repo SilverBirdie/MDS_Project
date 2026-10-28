@@ -1,20 +1,20 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 
-L = 10                  # Circumferance of cylinder [cm]
-N = 10                  # Number of elements
+L = 100                  # Circumferance of cylinder [cm]
+N = 100                  # Number of elements
 ds = L/N                # cm
 width = 0.1             # cm
 dt = width                 # s
-time_steps = 10         # s
 
 Tn = 273.15 + 50        # nozzle temp [K]
 T_base = 273.15 + 35    # base temp [K]
 Te = 273.15 + 19        # ambient temp [K]
 T_accept = Te + 5       # Accepted temperature threshold for filament  [K]
 
-h_base = 0.2
-he = 0.2
+h_base = 0.002
+he = 0.002
 
 k = 1                   # Thermal conductivity
 rho = 1.24              # density [g/cm^3]
@@ -36,7 +36,6 @@ def one_block_one_step(Tb, Ti, Tf):
 def first_block_one_step(Ti):
     return coeff*(1 - h_base -3*he)*Ti + T_ext
 
-domain = np.zeros((N, time_steps))
 
 def one_step_printing(Filament):
     Filament.append(Tn)
@@ -64,17 +63,39 @@ def one_step_notprinting(Filament):
 
 phill = [Tn]
 
+phill_list = [np.concat((np.array([Tn]), np.zeros(N-1)))]
+
 for t in range(1, N):
     print(t)
     phill = one_step_printing(phill)
+    phill_list.append(np.concat((np.array(phill), np.zeros(N-t-1))))
+
+print(phill_list)
+print()
+print()
 
 phill = np.array(phill)
 while np.max(phill) > T_accept:
     phill = one_step_notprinting(phill)
+    phill_list.append(phill)
+
+print(phill_list)
 
 
 
 
+fig, ax = plt.subplots(figsize=(25, 1))
+#scatter = ax.scatter(np.arange(N), np.zeros(N), s=100, c=phill_list[0], cmap="viridis", vmin=Te, vmax=Tn, marker="s")
+scatter = ax.pcolormesh(ds*np.arange(N), dt*np.arange(len(phill_list)), phill_list, vmin=Te, vmax=Tn)
+cbar = fig.colorbar(scatter, ax=ax)
+
+#def update(frame):
+#    scatter.set_array(phill_list[frame])
+#    return scatter
+#
+#anim = FuncAnimation(fig, update, frames=(len(phill_list)-1), interval=200, blit=False, repeat=False)
+
+plt.show()
 
 
         
