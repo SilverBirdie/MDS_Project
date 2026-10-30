@@ -12,6 +12,12 @@ R_m = 1
 L_m = 1
 m = 0.5         # kg
 
+def inputs_from_voltages(uml, umr):
+    u = (uml + umr)/2
+    v = (uml - umr)/2
+    return u, v
+
+
 def kinematics(theta_l, theta_r, theta_l_dot, theta_r_dot, x0, y0):
     x = x0 + r_m*(theta_l + theta_r)/2
     y = y0 + r_m*(theta_l - theta_r)/2
@@ -31,21 +37,26 @@ def state_space_decoupled():
 
     return ss(A_x, B, C, D), ss(A_y, B, C, D)
 
-P = 20
-omega = 2*np.pi/P
-t = np.linspace(0, 3*P, 500)
-u_ellipse = np.sin(omega*t)
-v_ellipse = np.cos(omega*t)
+if __name__ == "__main__":
+    P = 20
+    omega = 2*np.pi/P
+    t = np.linspace(0, 3*P, 500)
 
-u_square = np.repeat([1, 0, -1, 0, 1], 100)
-v_square = np.repeat([0, 1, 0, -1, 0], 100)
+    uml_ellipse = np.sin(omega*t) + np.cos(omega*t)
+    umr_ellipse = np.sin(omega*t) - np.cos(omega*t)
 
-ssx, ssy = state_space_decoupled()
-
-plt.plot(ssx.forced_response(t, u_ellipse).outputs[2*P:], ssy.forced_response(t, v_ellipse).outputs[2*P:])
-plt.figure()
-plt.plot(ssx.forced_response(t, u_square).outputs, ssy.forced_response(t, v_square).outputs)
-plt.show()
-
-
+    u_ellipse, v_ellipse = inputs_from_voltages(uml_ellipse, umr_ellipse)
     
+    uml_square = np.repeat([1, 1, -1, -1, 1], 100)
+    umr_square = np.repeat([1, -1, -1, 1, 1], 100)
+    u_square, v_square = inputs_from_voltages(uml_square, umr_square)
+    
+    ssx, ssy = state_space_decoupled()
+    
+    plt.plot(ssx.forced_response(t, u_ellipse).outputs[2*P:], ssy.forced_response(t, v_ellipse).outputs[2*P:])
+    plt.figure()
+    plt.plot(ssx.forced_response(t, u_square).outputs, ssy.forced_response(t, v_square).outputs)
+    plt.show()
+    
+    
+        
